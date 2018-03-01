@@ -233,3 +233,90 @@ appendix：介绍random模块==
     direction = ['left', 'center', 'right']
     com = choice(direction)  
 
+18. urllib2 模块：上网索取信息 
+```
+import urllib2
+web = urllib2.urlopen('http 分割://www 分割.baidu.分割com')
+content = web.read()
+print content
+```
+实现查询某个城市的天气：
+city.py 这个文件里有一个叫做city 的字典，它里面的key 是城市的名称，value 是对应的城市代码。不用把它copy 到自己的程序中，只要放在和你的代码同一路径下，用 from city import city 就可以引入city 这个字典。这里相当于用了一个自定义的模块，前一个“city”是模块名，也就是py 文件的名称，后一个“city”是模块中变量的名称。
+```
+cityname = raw_input('你想查哪个城市的天气？\n')
+citycode = city.get(cityname)
+if citycode:
+url = ('http: // www .weather .com.cn/data/cityinfo/%s.html' % citycode)
+content = urllib2.urlopen(url).read()
+```
+19. 如果提示编码不对，则在script最前面加上：
+`# -*- coding: utf-8 -*-`
+20. 面向对象：python是一个高度面向对象的语言，所有东西其实都是对象。
+* 通过dir()方法可以查看一个类/变量的所有属性
+* 调用类变量的方法是“对象.变量名”。你可以得到它的值，也可以改变它的值。
+* 定义类方法不同于其他函数： 变量必须是self. 调用时不需再给self的值，直接“对象.方法名()”就行，self指调用的对象本身
+* 初始化： __init__函数会在类被创建的时候自动调用，用来初始化类。它的参数，要在创建类的时候提供
+例子：
+```
+class MyClass:
+  name = 'Sam'
+
+  def sayHi(self):
+    print 'Hello %s' % self.name
+
+mc = MyClass()
+print mc.name
+mc.name = 'Lily'
+mc.sayHi()
+```
+21. 类的继承：
+class  导出类/子类1（基本类/超类）:
+pass  #表示不需要额外添加的功能
+
+class 导出类/子类2（基本类/超类）:
+def 同名函数来覆盖超类的方法 （同名函数中再调用原来超类的函数，就要给self的值）
+e.g.
+```
+class Vehicle:
+ def __init__(self, speed):
+   self.speed = speed
+
+ def drive(self, distance):
+   print 'need %f hour(s)' % (distance / self.speed)
+
+ class Bike(Vehicle):
+ pass
+
+ class Car(Vehicle):
+  def __init__(self, speed, fuel):
+   Vehicle.__init__(self, speed)
+   self.fuel = fuel
+```
+22. bool and a or b 语句中，当bool 条件为真时，结果是a；当bool 条件为假时，结果是b。
+    可用来简化 if-else结构（比如lambda语句中无法使用ifelse），不过其中的坑是： a本身为假值的时候，e.g. 0或"",就会输出b。解决办法： 把a换成[a]，b也换成[b],输出返回值列表的第一个值：
+ ```
+ a = ""
+ b = "hell"
+ c = (True and [a] or [b])[0]
+ print c
+ ```
+23. 元组（tuple)也是一种序列，与list相似，它有和list 同样的索引、切片、遍历等操作。区别在于创建后无法修改。
+用元组纪录返回值的例子：
+```
+def get_pos(n):
+  return (n/2, n*2)
+#取回有两种方法：
+ x, y = get_pos(50)
+ print x
+ print y
+ #或
+ pos = get_pos(50)
+ print pos[0]
+ print pos[1]
+```
+24. 数学运算模块 math 很有用， import math
+http://docs.python.org/2/library/math.html   查看官方完整文档
+25. 正则表达式： 记录文本规则的代码
+    模块   import re
+    推荐一篇叫做《正则表达式30 分钟入门教程》的 文章
+26. random 模块： 产生随机数 有很多用法
