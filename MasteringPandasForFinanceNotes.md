@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿# Notes for Book:   *Mastering pandas for Finance*
+# Notes for Book:   *Mastering pandas for Finance*
 ## Ch 1 Get started   
 Several useful packages:   
 
@@ -1035,3 +1035,33 @@ for ax in [ax1, ax2, ax3, ax4]:
 plt.gcf().set_size_inches(16, 12)
 ```
 ### Ch 8 Working with Options
+#### data
+```
+aapl_options = pd.read_csv('aapl_options.csv', 
+                           parse_dates=['Expiry'])
+# let's restructure and tidy this data to be useful in the examples
+aos = aapl_options.sort(['Expiry', 'Strike'])[
+    ['Expiry', 'Strike', 'Type', 'IV', 'Bid', 
+     'Ask', 'Underlying_Price']] 
+aos['IV'] = aos['IV'].apply(lambda x: float(x.strip('%')))
+```
+#### implied volatility
+- can see the volatility smile when we plot this
+```
+# all calls on expiry date of 2015-02-27
+calls1 = aos[(aos.Expiry=='2015-02-27') & (aos.Type=='call')]
+# IV tends to be minimized at the underlying price
+ax = aos[(aos.Expiry=='2015-02-27') & (aos.Type=='call')] \
+        .set_index('Strike')[['IV']].plot(figsize=(12,8))
+ax.axvline(calls1.Underlying_Price.iloc[0], color='g'); 
+```
+- smirks: reverse skew and forward skew
+
+
+
+
+
+
+
+
+```
