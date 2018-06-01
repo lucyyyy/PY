@@ -1055,13 +1055,100 @@ ax = aos[(aos.Expiry=='2015-02-27') & (aos.Type=='call')] \
         .set_index('Strike')[['IV']].plot(figsize=(12,8))
 ax.axvline(calls1.Underlying_Price.iloc[0], color='g'); 
 ```
-- smirks: reverse skew and forward skew
+#### smirks: reverse skew and forward skew
+for reverse-skew: 
+- volatility for options at lower strikes is higher than at higher strikes.
+- This means that in-the-money calss and out-the-money puts are more expensive than the relative.
+- Possible explanation: worried about crash, so buy out-the-money puts; buy in-the-money call for the alternative to stock purchase
+![reverse skewness](PATH)
+for forward-skew:
+- the IV for options at lower strikes is lower than the IV at higher strikes
+- This pattern is common for options in the commodities market. When the supply is tight, businesses world would rather pay more to secure supply than to risk supply disruption.
+![forward skewness](PATH)
 
-
-
-
-
-
-
-
+#### Calculating payoff on options
 ```
+# for call
+def call_payoff(price_at_maturity, strike_price):
+    return max(0, price_at_maturity - strike_price)
+def call_payoffs(min_maturity_price, max_maturity_price, 
+                 strike_price, step=1):
+    """
+    Calculate the payoffs for a range of maturity prices at 
+    a given strike price
+    """
+    maturities = np.arange(min_maturity_price, 
+                           max_maturity_price + step, step)
+    """
+    uses np.vectorize() to efficiently apply the call_payoff() function 
+    to each item in the specific column of the DataFrame
+    """
+    payoffs = np.vectorize(call_payoff)(maturities, strike_price)
+    df = pd.DataFrame({'Strike': strike_price, 'Payoff': payoffs}, 
+                      index=maturities)
+    df.index.name = 'Maturity Price'
+    return df
+```
+#### Pricing of Options
+- European easier to price: BS; American harder: binomial tree
+- American option is generally higher than European due to the flexibility and increased risk on the counterparty side
+- Black-Scholes's Assumptions:
+1. There is no arbitrage
+2. There is the ability to borrow money at a constant risk-free interest rate
+throughout the life of the option
+3. There are no transaction costs
+4. The pricing of the underlying security follows a Brownian motion with
+constant drift and volatility
+5. No dividends are paid from the underlying security
+#### Black-scholes using Mibian
+Mibian provides several methods of option price calculation, one of which is B-S.
+```
+aos[aos.Expiry=='2016-01-15'][:2]
+"""
+OUT:
+      Expiry  Strike  Type     IV    Bid    Ask  Underlying_Price
+0 2016-01-15   34.29  call  57.23  94.10  94.95            128.79
+1 2016-01-15   34.29   put  52.73   0.01   0.07            128.79
+"""
+date(2016, 1, 15) - date(2015, 2, 25) #OUT: datetime.timedelta(324)
+import mibian
+c = mibian.BS([128.79, 34.29, 1, 324], 57.23)
+c.callPrice   #OUT: 94.878970089456217
+c.putPrice
+c = mibian.BS([128.79, 34.29, 1, 324], 
+              callPrice=94.878970089456217 )
+c.impliedVolatility
+```
+- Charting option price change over time:
+```
+df = pd.DataFrame({'DaysToExpiry': np.arange(364, 0, -1)})
+bs_v1 = mibian.BS([128.79, 34.29, 1, 324], volatility=57.23)
+calc_call = lambda r: mibian.BS([128.79, 34.29, 1, 
+                                 r.DaysToExpiry], 
+                                volatility=57.23).callPrice
+df['CallPrice'] = df.apply(calc_call, axis=1)
+df[['CallPrice']].plot(figsize=(12,8));
+```
+#### The Greeks
+```
+greeks = pd.DataFrame()
+delta = lambda r: mibian.BS([r.Price, 60, 1, 180], 
+                            volatility=30).callDelta
+gamma = lambda r: mibian.BS([r.Price, 60, 1, 180], 
+                            volatility=30).gamma
+theta = lambda r: mibian.BS([r.Price, 60, 1, 180], 
+                            volatility=30).callTheta
+vega = lambda r: mibian.BS([r.Price, 60, 1, 365/12], 
+                           volatility=30).vega
+
+greeks['Price'] = np.arange(10, 70)
+greeks['Delta'] = greeks.apply(delta, axis=1)
+greeks['Gamma'] = greeks.apply(gamma, axis=1)
+greeks['Theta'] = greeks.apply(theta, axis=1)
+greeks['Vega'] = greeks.apply(vega, axis=1)
+greeks[['Delta', 'Gamma', 'Theta', 'Vega']].plot(figsize=(12,8));
+```
+### Ch 9 Portfolios and Risk
+
+
+
