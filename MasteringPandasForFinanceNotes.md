@@ -1060,11 +1060,13 @@ for reverse-skew:
 - volatility for options at lower strikes is higher than at higher strikes.
 - This means that in-the-money calss and out-the-money puts are more expensive than the relative.
 - Possible explanation: worried about crash, so buy out-the-money puts; buy in-the-money call for the alternative to stock purchase
-![reverse skewness](PATH)
+
+![reverse skewness](https://github.com/lucyyyy/PY/blob/master/reverse%20skew.JPG)
+
 for forward-skew:
 - the IV for options at lower strikes is lower than the IV at higher strikes
 - This pattern is common for options in the commodities market. When the supply is tight, businesses world would rather pay more to secure supply than to risk supply disruption.
-![forward skewness](PATH)
+![forward skewness](https://github.com/lucyyyy/PY/blob/master/forward%20skew.JPG)
 
 #### Calculating payoff on options
 ```
@@ -1149,6 +1151,185 @@ greeks['Vega'] = greeks.apply(vega, axis=1)
 greeks[['Delta', 'Gamma', 'Theta', 'Vega']].plot(figsize=(12,8));
 ```
 ### Ch 9 Portfolios and Risk
+#### modeling a portfolio
+```
+import scipy as sp
+import scipy.optimize as scopt
+import scipy.stats as spstats
 
+def create_portfolio(tickers, weights=None):
+    if weights is None: 
+        shares = np.ones(len(tickers))/len(tickers)
+    portfolio = pd.DataFrame({'Tickers': tickers, 
+                              'Weights': shares}, 
+                             index=tickers)
+    return portfolio
+portfolio = create_portfolio(['Stock A', 'Stock B'], [1, 1])
 
+def calculate_weighted_portfolio_value(portfolio, 
+                                       returns, 
+                                       name='Value'):
+    total_weights = portfolio.Weights.sum()
+    weighted_returns = returns * (portfolio.Weights / 
+                                  total_weights)
+    return pd.DataFrame({name: weighted_returns.sum(axis=1)})
+wr = calculate_weighted_portfolio_value(portfolio, 
+                                        returns, 
+                                        "Value")
+with_value = pd.concat([returns, wr], axis=1)
 
+def plot_portfolio_returns(returns, title=None):
+    returns.plot(figsize=(12,8))
+    plt.xlabel('Year')
+    plt.ylabel('Returns')
+    if title is not None: plt.title(title)
+    plt.show()
+```
+#### Computing an efficient portfolio
+```
+def get_historical_closes(ticker, start_date, end_date):
+    # get the data for the tickers.  This will be a panel
+    p = web.DataReader(ticker, "yahoo", start_date, end_date)    
+    # convert the panel to a DataFrame and selection only Adj Close
+    # while making all index levels columns
+    d = p.to_frame()['Adj Close'].reset_index()
+    # rename the columns
+    d.rename(columns={'minor': 'Ticker', 
+                      'Adj Close': 'Close'}, inplace=True)
+    # pivot each ticker to a column
+    pivoted = d.pivot(index='Date', columns='Ticker')
+    # and drop the one level on the columns
+    pivoted.columns = pivoted.columns.droplevel(0)
+    return pivoted
+closes = get_historical_closes(['MSFT', 'AAPL', 'KO'], '2010-01-01', '2014-12-31')
+def calc_daily_returns(closes):
+    return np.log(closes/closes.shift(1))
+# calculate daily returns
+daily_returns = calc_daily_returns(closes)
+# calculate annual returns
+def calc_annual_returns(daily_returns):
+    grouped = np.exp(daily_returns.groupby(
+        lambda date: date.year).sum())-1
+    return grouped
+annual_returns = calc_annual_returns(daily_returns)
+def calc_portfolio_var(returns, weights=None):
+    if weights is None: 
+        weights = np.ones(returns.columns.size)/returns.columns.size
+    sigma = np.cov(returns.T,ddof=0)
+    var = (weights * sigma * weights.T).sum()
+    return var
+# calculate our portfolio variance (equal weighted)
+calc_portfolio_var(annual_returns)
+```
+#### Sharpe Ratio, Optimization and Minimization
+```
+def sharpe_ratio(returns, weights = None, risk_free_rate = 0.015):
+    n = returns.columns.size
+    if weights is None: weights = np.ones(n)/n
+    # get the portfolio variance
+    var = calc_portfolio_var(returns, weights)
+    # and the means of the stocks in the portfolio
+    means = returns.mean()
+    # and return the sharpe ratio
+    return (means.dot(weights) - risk_free_rate)/np.sqrt(var)
+# calculate equal weighted sharpe ratio
+sharpe_ratio(annual_returns)    
+# function to minimize
+def y_f(x): return 2+x**2
+scopt.fmin(y_f, 1000)
+```
+#### Constructing an optimal portfolio
+```
+def negative_sharpe_ratio_n_minus_1_stock(weights, 
+                                          returns, 
+                                          risk_free_rate):
+    """
+    Given n-1 weights, return a negative sharpe ratio
+    """
+    weights2 = sp.append(weights, 1-np.sum(weights))
+    return -sharpe_ratio(returns, weights2, risk_free_rate)
+def optimize_portfolio(returns, risk_free_rate):
+    """ 
+    Performs the optimization
+    """
+    # start with equal weights
+    w0 = np.ones(returns.columns.size-1, 
+                 dtype=float) * 1.0 / returns.columns.size
+    # minimize the negative sharpe value
+    w1 = scopt.fmin(negative_sharpe_ratio_n_minus_1_stock, 
+                    w0, args=(returns, risk_free_rate))
+    # build final set of weights
+    final_w = sp.append(w1, 1 - np.sum(w1))
+    # and calculate the final, optimized, sharpe ratio
+    final_sharpe = sharpe_ratio(returns, final_w, risk_free_rate)
+    return (final_w, final_sharpe)
+ # optimize our portfolio
+optimize_portfolio(annual_returns, 0.0003)   
+```
+#### Visualizing the Efficient Frontier
+```
+def objfun(W, R, target_ret):
+    stock_mean = np.mean(R,axis=0)
+    port_mean = np.dot(W,stock_mean) # portfolio mean
+    cov=np.cov(R.T) # var-cov matrix
+    port_var = np.dot(np.dot(W,cov),W.T) # portfolio variance
+    penalty = 2000*abs(port_mean-target_ret)# penalty 4 deviation
+    return np.sqrt(port_var) + penalty # objective function
+def calc_efficient_frontier(returns):
+    result_means = []
+    result_stds = []
+    result_weights = []
+    
+    means = returns.mean()
+    min_mean, max_mean = means.min(), means.max()
+    
+    nstocks = returns.columns.size
+    
+    for r in np.linspace(min_mean, max_mean, 100):
+        weights = np.ones(nstocks)/nstocks
+        bounds = [(0,1) for i in np.arange(nstocks)]
+        constraints = ({'type': 'eq', 
+                        'fun': lambda W: np.sum(W) - 1})
+        results = scopt.minimize(objfun, weights, (returns, r), 
+                                 method='SLSQP', 
+                                 constraints = constraints,
+                                 bounds = bounds)
+        if not results.success: # handle error
+            raise Exception(result.message)
+        result_means.append(np.round(r,4)) # 4 decimal places
+        std_=np.round(np.std(np.sum(returns*results.x,axis=1)),6)
+        result_stds.append(std_)
+        
+        result_weights.append(np.round(results.x, 5))
+    return {'Means': result_means, 
+            'Stds': result_stds, 
+            'Weights': result_weights} 
+ # calculate our frontier
+frontier_data = calc_efficient_frontier(annual_returns)
+ # first five risk levels
+frontier_data['Stds'][:5]
+ # first five mean returns
+frontier_data['Means'][:5]
+ # first five sets of optimal weights
+frontier_data['Weights'][:5]
+def plot_efficient_frontier(frontier_data):
+    plt.figure(figsize=(12,8))
+    plt.title('Efficient Frontier')
+    plt.xlabel('Standard Deviation of the porfolio (Risk))')
+    plt.ylabel('Return of the portfolio')
+    plt.plot(frontier_data['Stds'], frontier_data['Means'], '--'); 
+    plt.savefig('5104OS_09_20.png', bbox_inches='tight', dpi=300)
+plot_efficient_frontier(frontier_data)
+```
+#### Value at Risk
+- measures in three variables: the amount of potential loss, the probability of the loss, and the timeframe.
+- three means to estimate volatility: historical data, variance-covariance, Monte Carlo
+- assumes the return are normally distributed
+```
+# get the z-score for 95%
+z = spstats.norm.ppf(0.95)
+# our position is 1000 shares of AAPL at the price on 2014-22-31
+position = 1000 * aapl_closes.ix['2014-12-31'].AAPL
+# what is our VaR
+VaR = position * (z * returns.AAPL.std())
+```
