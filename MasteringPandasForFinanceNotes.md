@@ -1061,12 +1061,12 @@ for reverse-skew:
 - This means that in-the-money calss and out-the-money puts are more expensive than the relative.
 - Possible explanation: worried about crash, so buy out-the-money puts; buy in-the-money call for the alternative to stock purchase
 
-![reverse skewness](https://github.com/lucyyyy/PY/blob/master/reverse%20skew.JPG)
+![reverse skewness](https://github.com/lucyyyy/PY/blob/master/pics/reverse%20skew.JPG)
 
 for forward-skew:
 - the IV for options at lower strikes is lower than the IV at higher strikes
 - This pattern is common for options in the commodities market. When the supply is tight, businesses world would rather pay more to secure supply than to risk supply disruption.
-![forward skewness](https://github.com/lucyyyy/PY/blob/master/forward%20skew.JPG)
+![forward skewness](https://github.com/lucyyyy/PY/blob/master/pics/forward%20skew.JPG)
 
 #### Calculating payoff on options
 ```
