@@ -124,3 +124,115 @@ a[1:4:2] #1,3
 a[::-1] #4,3,2,1,0    use -1 to reverse an array
 ```
 #### 2-D
+same rule in 1-D, except for the trailing colons doesn't need to be given explicitly:
+```
+a=np.arange(12); a.shape=(3,4)
+a[2,:]
+a[2]  # This is the same as a[2,:]
+```
+### Copies and views
+For a standard list, taking a slice creates its copy. (Changing slice would not change its original value)
+
+For a Numpy array, taking a slice creates a view on the original array. Both arrays refers to the same memory, so would change simultaneously. To avoid this, just use .copy() method
+```
+a=np.arange(5)
+b=a[2:].copy()
+```
+### Matrix multiplication
+The * operator represents **elementwise multiplication**  
+The dot() function is matrix multiplication, and it supports **matrix-vector multiplication**
+```
+A=np.array([[1,2],[3,4]])
+x=np.array([10,20])
+np.dot(A,x)  #50,110
+np.dot(x,A)  #70,100
+```
+## SciPy
+Basic structure:  
+scipy.intergrate->integration and ordinary differential equations  
+scipy.linalg -> linear algebra  
+scipy.ndimage -> image processing  
+scipy.optimize -> optimisation and root finding  
+scipy.special -> special functions  
+scipy.stats -> statistical functions  
+To load a paticular module, use `from scipy import linalg`  
+
+## sympy
+Symbolic computation, can be useful for calculating explicit solutions to equations, integrations and so on.
+```
+import sympy as sy
+
+x=sy.Symbol('x')
+y=sy.Symbol('y')
+a,b=sy.symbols('a b')
+
+f=x**2+y**2-2*x*y+5
+print(f)   #x**2 - 2*x*y + y**2 + 5
+
+g=x**2+2-2*x+x**2-1  #auto simplify
+print(g)   #2*x**2 - 2*x + 1
+```
+can have other uses such as **solve equations, integration, differentiation**
+![use of symbol 1](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZj1dDKjaKwib4nxazKR4s4icOSZGjwUWqibKYM3IQvG92NEuaXhvYpict7Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
+![use of symbol 2]
+(http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZYENwgrc7Tb5tKGffXP5H1aibxo8H8y6O7ABib6l2EsgicnQZ1acxEED0Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
+![use of symbol 3](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZJ7T6lw1RncOMmqicrxDN3ibW48264WCI3OH5k5cs7GnkL2lvVJbiaqLAg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
+
+## Matplotlib
+use it to plot. Add by ` from matplotlib import pyplot as plt` or `import matplotlib.pyplot as plt`
+
+Application:
+```
+import numpy as np
+import matplotlib.pyplot as plt
+
+x=np.linspace(0,10,201)
+y=x**0.5
+plt.plot(x,y)
+
+plt.figure(figsize=(3,3))
+plt.plot(x,x**0.3,'r--')
+plt.plot(x,x-1,'k--')
+plt.plot(x,np.zeros_like(x),'k-')
+
+# multiple plotting, legends,labels and title
+plt.figure(figsize=(4,4))
+for n in range(2,5):
+    y=x**(1/n)
+    plt.plot(x,y,label='x^(1/'+str(n)+')')
+plt.legend(loc='best')
+plt.xlabel('X axis')
+plt.ylabel('Y axis')
+plt.xlim(-2,10)
+plt.title('Multi-plot e.g. ', fontsize=18)
+
+# Subplots
+def pffcall(S,K):
+    return np.maximum(S-K,0.0)
+def pffput(S,K):
+    return np.maximum(K-S,0.0)
+
+S=np.linspace(50,151,100)
+fig=plt.figure(figsize=(12,6))
+sub1=fig.add_subplot(121) #col, row, num
+sub1.set_title('Call',fontsize=18)
+plt.plot(S,pffcall(S,100),'r-',lw=4)
+plt.plot(S,np.zeros_like(S),'black',lw=1)
+sub1.grid(True)
+sub1.set_xlim([60,120])
+sub1.set_ylim([-10,40])
+
+sub2=fig.add_subplot(122)
+sub2.set_title('Put',fontsize=18)
+plt.plot(S,pffput(S,100),'r-',lw=4)
+plt.plot(S,np.zeros_like(S),'black',lw=1)
+sub2.grid(True)
+sub2.set_xlim([60,120])
+sub2.set_ylim([-10,40])
+
+# Adding texts to plots
+from scipy.stats import norm
+
+def call(S,K=100,T=0.5,vol=0.6,r=0.05):
+    d1=(np.log(S/K)+)
+```
