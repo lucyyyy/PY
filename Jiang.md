@@ -234,5 +234,73 @@ sub2.set_ylim([-10,40])
 from scipy.stats import norm
 
 def call(S,K=100,T=0.5,vol=0.6,r=0.05):
-    d1=(np.log(S/K)+)
+    d1=(np.log(S/K)+(r+0.5*vol**2)*T)/np.sqrt(T)/vol
+    d2=(np.log(S/K)+(r-0.5*vol*2)*T)/np.sqrt(T)/vol
+    return S*norm.cdf(d1)-K*np.exp(-r*T)*norm.cdf(d2)
+
+def delta(S,K=100,T=0.5,vol=0.6,r=0.05):
+    d1=(np.log(S/K)+(r+0.5*vol**2)*T)/np.sqrt(T)/vol
+    return norm.cdf(d1)
+
+S=np.linspace(40,161,100)
+fig=plt.figure(figsize=(7,6))
+ax=fig.add_subplot(111)
+plt.plot(S,(call(S)-call(100)),'r',lw=1)
+plt.plot(100,0,'ro',lw=1)
+plt.plot(S,np.zeros_like(S),'black',lw=1)
+plt.plot(S,call(S)-delta(100)*S-(call(100)-delta(100)*100),'y',lw=1)
+
+ax.annotate('$/Delta$ hedge',xy=(100,0),xytext=(110,-10),arrowprops= \
+            dict(headwidth=3,width=0.5,facecolor='blacl',shrink=0.05))
+ax.annotate('Original call',xy=(120,call(120)-call(100)),xytext= \
+            (130,call(120)-call(100)),arrowprops=dict(headwidth=10, \
+            width=3,facecolor='cyan',shrink=0.05))
+plt.grid(True)
+plt.xlim(40,160)
+plt.xlabel('Stock price',fontsize=18)
+plt.ylabel('Profits',fontsize=18)
+
+# 3D plot of a function with 2 variables
+from matplotlib import cm 
+from mpl_toolkits.mplot3d import Axes3D
+
+x,y=np.mgrid[-5:5:100j,-5:5:100j]
+z=x**2+y**2
+fig=plt.figure(figsize=(8,6))
+ax=plt.axes(projection='3d')
+surf=ax.plot_surface(x,y,z,rstride=1,cmap=cm.coolwarm,cstride=1,\
+                     linewidth=0)
+fig.colorbar(surf,shrink=0.5,aspect=5)
+plt.title('3D plot of $z=x^2+y^2$')
 ```
+# Day 3 (Statistics)
+## Stochastic and Monte Carlo
+### Generate random mumber
+```
+import numpy.ramdom as npr
+
+X=npr.standard_normal((5000))
+Y=npr.normal(1,1,(5000))
+Z=npr.uniform(-3,3,(5000))
+W=npr.lognormal(0,1,(5000))
+```
+### Monte Carlo
+MC is widely used in statistical mechanics, quantum physics, financial derivatives pricing and 
+risk management.
+#### An example in Option Pricing
+```
+from scipy.stats import norm
+
+S=100;K=100;T=1
+r=0.05;vol=0.5
+
+I=10000 #MC paths
+Z=npr.standard_normal(I)
+ST=S*np.exp((r-0.5*vol**2)*T+vol*np.sqrt(T)*z)
+V=np.mean(np.exp(-r*T)*np.maximum(ST-K,0))
+print(V)
+```
+### Statistical application
+Histogram plot by `.hist(bin=100,figsize=(8,6))`
+QQ-plot using library **statsmodel**
+Meachine learning library **scikit-learn**
