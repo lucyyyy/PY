@@ -173,10 +173,9 @@ g=x**2+2-2*x+x**2-1  #auto simplify
 print(g)   #2*x**2 - 2*x + 1
 ```
 can have other uses such as **solve equations, integration, differentiation**
-![use of symbol 1](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZj1dDKjaKwib4nxazKR4s4icOSZGjwUWqibKYM3IQvG92NEuaXhvYpict7Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
+![use of symbol 1](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZj1dDKjaKwib4nxazKR4s4icOSZGjwUWqibKYM3IQvG92NEuaXhvYpict7Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1) 
 
-![use of symbol 2]
-(http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZYENwgrc7Tb5tKGffXP5H1aibxo8H8y6O7ABib6l2EsgicnQZ1acxEED0Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
+![use of symbol 2](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZYENwgrc7Tb5tKGffXP5H1aibxo8H8y6O7ABib6l2EsgicnQZ1acxEED0Q/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1) 
 
 ![use of symbol 3](http://mmbiz.qpic.cn/mmbiz/nliazs07woqkq6aoUyEKB0WlJqwfFpSzZJ7T6lw1RncOMmqicrxDN3ibW48264WCI3OH5k5cs7GnkL2lvVJbiaqLAg/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1)
 
